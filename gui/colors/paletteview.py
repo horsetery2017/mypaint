@@ -1510,36 +1510,56 @@ def _palette_render(
             sh_col.c *= 0.5
             sh_rgb = sh_col.get_rgb()
         else:
-            # Color swatch
+            # Color swatch - 简化颜色处理逻辑
+            fill_bg_rgb = col.get_rgb()
+            # 确保颜色值在有效范围内
+            fill_bg_rgb = tuple(max(0.0, min(1.0, c)) for c in fill_bg_rgb)
+            
+            # 创建高亮和阴影颜色
             hi_col = HCYColor(color=col)
             hi_col.y = min(hi_col.y * 1.1, 1)
             hi_col.c = min(hi_col.c * 1.1, 1)
+            hi_rgb = hi_col.get_rgb()
+            hi_rgb = tuple(max(0.0, min(1.0, c)) for c in hi_rgb)
+            
             sh_col = HCYColor(color=col)
             sh_col.y *= 0.666
             sh_col.c *= 0.5
-            hi_rgb = hi_col.get_rgb()
-            fill_bg_rgb = col.get_rgb()
-            fill_fg_rgb = None
             sh_rgb = sh_col.get_rgb()
+            sh_rgb = tuple(max(0.0, min(1.0, c)) for c in sh_rgb)
+            
+            fill_fg_rgb = None
 
-        # Draw the swatch / color chip
-        cr.set_source_rgb(*sh_rgb)
-        cr.rectangle(s_x, s_y, s_w, s_h)
-        cr.fill()
-        cr.set_source_rgb(*fill_bg_rgb)
-        cr.rectangle(s_x, s_y, s_w - 1, s_h - 1)
-        cr.fill()
-        if fill_fg_rgb is not None:
-            s_w2 = int((s_w - 1) // 2)
-            s_h2 = int((s_h - 1) // 2)
-            cr.set_source_rgb(*fill_fg_rgb)
-            cr.rectangle(s_x, s_y, s_w2, s_h2)
+        # Draw the swatch / color chip - 简化渲染逻辑
+        if col is None:
+            # 空槽位：绘制图案
+            cr.set_source_rgb(*sh_rgb)
+            cr.rectangle(s_x, s_y, s_w, s_h)
             cr.fill()
-            cr.rectangle(s_x + s_w2, s_y + s_h2, s_w2, s_h2)
+            cr.set_source_rgb(*fill_bg_rgb)
+            cr.rectangle(s_x, s_y, s_w - 1, s_h - 1)
             cr.fill()
-        cr.set_source_rgb(*hi_rgb)
-        cr.rectangle(s_x + 0.5, s_y + 0.5, s_w - 2, s_h - 2)
-        cr.stroke()
+            if fill_fg_rgb is not None:
+                s_w2 = int((s_w - 1) // 2)
+                s_h2 = int((s_h - 1) // 2)
+                cr.set_source_rgb(*fill_fg_rgb)
+                cr.rectangle(s_x, s_y, s_w2, s_h2)
+                cr.fill()
+                cr.rectangle(s_x + s_w2, s_y + s_h2, s_w2, s_h2)
+                cr.fill()
+        else:
+            # 有色槽位：直接绘制颜色，添加简单边框
+            # 绘制主色块
+            cr.set_source_rgb(*fill_bg_rgb)
+            cr.rectangle(s_x, s_y, s_w - 1, s_h - 1)
+            cr.fill()
+            
+            # 绘制边框
+            cr.set_source_rgb(*hi_rgb)
+            cr.set_line_width(1.0)
+            cr.rectangle(s_x + 0.5, s_y + 0.5, s_w - 2, s_h - 2)
+            # cr.stroke() 
+            #注释此行可以解决在mac上只显示边框的问题（不显示色块的问题，目前还不知道原因）
 
         c += 1
         if c >= columns:
