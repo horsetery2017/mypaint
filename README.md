@@ -2,6 +2,16 @@
 * The shortcut keys cannot be used
 * The palette color plate cannot be displayed correctly
 
+## Wacom Intuos 5 s for macos 15.5
+Wacom Intuos 5 S cannot be driven well under macos15.5 (the official driver is invalid), but it can be driven directly using OpenTabletDriver (actually it hijacks HID)
+
+## 这是一个针对于macos 15.5(sequoia)的版本，解决了以下问题：
+* 快捷键不能使用的问题
+* palette色盘无法正确显示的问题
+
+##Wacom驱动问题
+wacom intuos 5 s在macos15.5下不能很好地驱动（官方驱动无效），直接使用OpenTabletDriver可以驱动（其实是劫持了HID）
+
 <p align="center">
     <img src="pixmaps/mypaint_logo.png?raw=true" height="100px"/>
     <h1 align="center">MyPaint</h1>
