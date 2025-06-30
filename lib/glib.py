@@ -188,9 +188,15 @@ def init_user_dir_caches():
     # It doesn't matter if some of these are None
     for i in range(GLib.UserDirectory.N_DIRECTORIES):
         k = GLib.UserDirectory(i)
+        # Fix for Python 3.13 compatibility - use str() instead of .value_name
+        try:
+            dir_name = k.value_name
+        except AttributeError:
+            # Fallback for Python 3.13+ where value_name might not exist
+            dir_name = str(k)
         logger.debug(
             "Init g_get_user_special_dir(%s): %r",
-            k.value_name,
+            dir_name,
             get_user_special_dir(k),
         )
 

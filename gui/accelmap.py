@@ -488,7 +488,7 @@ class AccelMapEditor(Gtk.Grid):
                 event.state,
                 # https://github.com/mypaint/mypaint/issues/974
                 # event.group
-                1,
+                getattr(event, 'group', 0),
             )
         )
         keyval = Gdk.keyval_to_lower(keyval)

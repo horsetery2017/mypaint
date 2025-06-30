@@ -38,14 +38,50 @@ class ScaleDelegator(type(Gtk.Bin)):
         to_add = [p for p in Gtk.Scale.list_properties() if p.name not in base]
         for prop in to_add:
             val_type = prop.value_type
-            setattr(
-                cls,
-                prop.name.replace("-", "_"),
-                GObject.Property(
-                    type=val_type.pytype if val_type.pytype else val_type,
-                    default=prop.default_value,
-                ),
-            )
+            # Fix for Python 3.12 + pygobject 3.50 compatibility
+            try:
+                # Try to use pytype if available
+                if hasattr(val_type, 'pytype') and val_type.pytype:
+                    prop_type = val_type.pytype
+                else:
+                    # Fallback to the GType itself
+                    prop_type = val_type
+                
+                # Ensure default value is compatible with the type
+                # Use get_default_value() method instead of default_value attribute
+                try:
+                    default_value = prop.get_default_value()
+                except (AttributeError, TypeError):
+                    # Fallback for older pygobject versions
+                    try:
+                        default_value = prop.default_value
+                    except AttributeError:
+                        default_value = None
+                
+                if default_value is not None:
+                    # Convert default value to the correct type if needed
+                    if prop_type == int and not isinstance(default_value, int):
+                        default_value = int(default_value)
+                    elif prop_type == float and not isinstance(default_value, float):
+                        default_value = float(default_value)
+                    elif prop_type == bool and not isinstance(default_value, bool):
+                        default_value = bool(default_value)
+                    elif prop_type == str and not isinstance(default_value, str):
+                        default_value = str(default_value)
+                
+                setattr(
+                    cls,
+                    prop.name.replace("-", "_"),
+                    GObject.Property(
+                        type=prop_type,
+                        default=default_value,
+                    ),
+                )
+            except (TypeError, ValueError) as e:
+                # If we can't determine the type properly, skip this property
+                # This is a fallback to prevent crashes
+                print(f"Warning: Skipping property {prop.name} due to type compatibility issue: {e}")
+                continue
         # Store newly created property names to determine which to delegate
         cls._scale_props = {p.name for p in to_add}
         super(ScaleDelegator, cls).__init__(name, bases, dict)

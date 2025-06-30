@@ -113,6 +113,10 @@ def _init_icons(icon_path, default_icon="org.mypaint.MyPaint"):
     """Set the icon theme search path, and GTK default window icon"""
     # Default location for our icons. The user's theme can override these.
     icon_theme = Gtk.IconTheme.get_default()
+    if icon_theme is None:
+        import warnings
+        warnings.warn("Gtk.IconTheme.get_default() returned None. Skipping icon theme setup.")
+        return
     icon_theme.append_search_path(icon_path)
     # Ensure that MyPaint has its icons.
     # Test a sample symbolic icon to make sure librsvg is installed and
@@ -644,7 +648,8 @@ class Application(object):
         # Auxiliary actions first...
         if investigate_dir and os.path.isdir(investigate_dir):
             if not investigate_str:
-                tmpl = _("Open Folder “{folder_basename}”…")
+                # Fix string formatting for Python syntax
+                tmpl = _(r'Open Folder "{folder_basename}"…')
                 investigate_str = tmpl.format(
                     folder_basename=os.path.basename(investigate_dir),
                 )

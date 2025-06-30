@@ -106,12 +106,13 @@ class KeyboardManager:
         # Instead of using event.keyval, we do it the lowlevel way.
         # Reason: ignoring CAPSLOCK and checking if SHIFT was pressed
         state = Gdk.ModifierType(event.state & ~Gdk.ModifierType.LOCK_MASK)
+        
+        # 使用event.group而不是硬编码的1，这样可以正确处理不同的键盘布局
+        group = getattr(event, 'group', 0)
         res = keymap.translate_keyboard_state(
             event.hardware_keycode,
             state,
-            # https://github.com/mypaint/mypaint/issues/974
-            # event.group)
-            1,
+            group,
         )
         if not res:
             # PyGTK returns None when gdk_keymap_translate_keyboard_state()
