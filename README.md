@@ -1,3 +1,7 @@
+## This is a version for macOS 15.5 (Sequoia), which solves the following problems:
+* The shortcut keys cannot be used
+* The palette color plate cannot be displayed correctly
+
 <p align="center">
     <img src="pixmaps/mypaint_logo.png?raw=true" height="100px"/>
     <h1 align="center">MyPaint</h1>
