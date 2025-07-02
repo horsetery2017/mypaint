@@ -62,6 +62,7 @@ class FloodFillMode(gui.mode.ScrollableModeMixin, gui.mode.DragMode):
     _CURSOR_FILL_ERASER = gui.cursor.Name.ERASER
     _CURSOR_FILL_ALPHA_LOCKED = gui.cursor.Name.ALPHA_LOCK
     _CURSOR_FILL_COLORIZE = gui.cursor.Name.COLORIZE
+    _CURSOR_FILL_FILL = gui.cursor.Name.CROSSHAIR_OPEN_PRECISE
     _CURSOR_FILL_FORBIDDEN = gui.cursor.Name.ARROW_FORBIDDEN
 
     _MODE_CURSORS = [
@@ -69,6 +70,7 @@ class FloodFillMode(gui.mode.ScrollableModeMixin, gui.mode.DragMode):
         _CURSOR_FILL_ERASER,
         _CURSOR_FILL_ALPHA_LOCKED,
         _CURSOR_FILL_COLORIZE,
+        _CURSOR_FILL_FILL,
     ]
 
     # Instance vars (and defaults)
@@ -197,6 +199,11 @@ class FloodFillMode(gui.mode.ScrollableModeMixin, gui.mode.DragMode):
         elif blend_mode == BlendModes.COLORIZE:
             comp_mode = lib.mypaintlib.CombineColor
             lock_alpha = True
+
+        # fill mode - use normal compositing
+        elif blend_mode == BlendModes.FILL:
+            comp_mode = lib.mypaintlib.CombineNormal
+            lock_alpha = False
 
         return lock_alpha, comp_mode
 

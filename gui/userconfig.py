@@ -77,7 +77,7 @@ def default_configuration():
             toolbar1_file=True,
             toolbar1_scrap=False,
             toolbar1_edit=True,
-            toolbar1_blendmodes=False,
+            toolbar1_blendmodes=True,
             toolbar1_linemodes=True,
             toolbar1_view_modes=True,
             toolbar1_view_manips=False,

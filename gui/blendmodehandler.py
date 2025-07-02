@@ -54,6 +54,7 @@ class BlendModes(object):
     ERASE = 1
     LOCK_ALPHA = 2
     COLORIZE = 3
+    FILL = 4
 
     def __init__(self):
         self.eraser_mode = BlendMode("eraser_mode", "eraser")
@@ -62,6 +63,8 @@ class BlendModes(object):
         self.lock_alpha_mode.mode_type = self.LOCK_ALPHA
         self.colorize_mode = BlendMode("colorize_mode", "colorize")
         self.colorize_mode.mode_type = self.COLORIZE
+        self.fill_mode = BlendMode("fill_mode", "fill")
+        self.fill_mode.mode_type = self.FILL
         self.normal_mode = BlendMode("normal_mode", None, True)
         self.normal_mode.mode_type = self.NORMAL
 
@@ -69,6 +72,7 @@ class BlendModes(object):
             self.eraser_mode,
             self.lock_alpha_mode,
             self.colorize_mode,
+            self.fill_mode,
             self.normal_mode,
         ]
         self.mode_names = map(lambda x: x.name, self.modes)
@@ -132,11 +136,13 @@ class BlendModeManager(object):
         self.lock_alpha_mode = app.find_action("BlendModeLockAlpha")
         self.normal_mode = app.find_action("BlendModeNormal")
         self.colorize_mode = app.find_action("BlendModeColorize")
+        self.fill_mode = app.find_action("BlendModeFill")
         self.actions = {
             "eraser_mode": self.eraser_mode,
             "lock_alpha_mode": self.lock_alpha_mode,
             "normal_mode": self.normal_mode,
             "colorize_mode": self.colorize_mode,
+            "fill_mode": self.fill_mode,
         }
 
         for name in self.actions:
@@ -216,3 +222,7 @@ class BlendModeManager(object):
     def blend_mode_colorize_cb(self, action):
         if self._bm:
             self._bm.colorize_mode.active = action.get_active()
+            
+    def blend_mode_fill_cb(self, action):
+        if self._bm:
+            self._bm.fill_mode.active = action.get_active()

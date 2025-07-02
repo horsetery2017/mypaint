@@ -43,9 +43,17 @@ class BrushModifier(object):
         if old is new:
             return
         if old.setting_name:
-            self.set_override_setting(old.setting_name, False)
+            try:
+                self.set_override_setting(old.setting_name, False)
+            except KeyError:
+                # Setting doesn't exist in this brush, skip
+                pass
         if new.setting_name:
-            self.set_override_setting(new.setting_name, True)
+            try:
+                self.set_override_setting(new.setting_name, True)
+            except KeyError:
+                # Setting doesn't exist in this brush, skip
+                pass
 
     def set_override_setting(self, setting_name, override):
         """Overrides a boolean setting currently in effect.
@@ -123,6 +131,17 @@ class BrushModifier(object):
         else:
             # Preserve the old lock_alpha state
             self.set_override_setting("lock_alpha", prev_lock_alpha)
+            
+        # Set default fill mode settings if not already set
+        try:
+            if b.get_base_value("fill_mode") == 0.0:
+                b.set_base_value("fill_mode", 0.0)  # Default to normal mode
+                b.set_base_value("fill_threshold", 0.5)
+                b.set_base_value("fill_close_distance", 10.0)
+                b.set_base_value("fill_smoothing", 0.3)
+        except KeyError:
+            # Fill mode settings don't exist in this brush, skip
+            pass
 
         b.end_atomic()
 
@@ -132,8 +151,12 @@ class BrushModifier(object):
         for mode in self.bm.modes:
             setting_name = mode.setting_name
             if setting_name is not None:
-                if b.has_large_base_value(setting_name):
-                    active_blend_mode = mode
+                try:
+                    if b.has_large_base_value(setting_name):
+                        active_blend_mode = mode
+                except KeyError:
+                    # Setting doesn't exist in this brush, skip
+                    pass
         active_blend_mode.active = True
 
         self._in_brush_selected_cb = False

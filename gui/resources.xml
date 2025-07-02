@@ -971,6 +971,15 @@ Vocabulary
         </object>
         <accelerator key="e" modifiers="GDK_SHIFT_MASK"/>
       </child>
+      <child>
+        <object class="GtkToggleAction" id="BlendModeFill">
+          <property name="icon_name">mypaint-fill-symbolic</property>
+          <property name="label" translatable="yes" context="Menu→Brush→Blend Mode (labels), Accel Editor (labels)">Paint Mode: Fill</property>
+          <property name="tooltip" translatable="yes" context="Accel Editor (descriptions)">Fill areas defined by brush stroke path.</property>
+          <signal name="activate" handler="blend_mode_fill_cb"/>
+        </object>
+        <accelerator key="f" modifiers="GDK_SHIFT_MASK"/>
+      </child>
     </object>
   </child>
   <!--}}} /BrushModifierActions -->
