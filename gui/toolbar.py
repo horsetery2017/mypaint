@@ -124,3 +124,37 @@ class ToolbarManager(object):
                 return
             self.app.ui_manager.remove_ui(merge_id)
             self.toolbar1_ui_loaded.pop(name)
+
+def add_outline_fill_brush_button(toolbar, app):
+    """添加轮廓填充笔刷按钮到工具栏"""
+    try:
+        # 获取轮廓填充笔刷管理器
+        outline_fill_manager = app.outline_fill_brush_manager
+        
+        if not outline_fill_manager:
+            print("轮廓填充笔刷管理器未初始化")
+            return None
+        
+        # 获取笔刷按钮
+        brush_button = outline_fill_manager.get_brush_button()
+        
+        if not brush_button:
+            print("笔刷按钮为空")
+            return None
+        
+        # 添加到工具栏
+        toolbar.insert(brush_button, -1)
+        
+        # 添加分隔符
+        separator = Gtk.SeparatorToolItem()
+        separator.set_draw(False)
+        separator.set_expand(True)
+        toolbar.insert(separator, -1)
+        
+        print("轮廓填充笔刷按钮已添加到工具栏")
+        return brush_button
+    except Exception as e:
+        print(f"添加轮廓填充笔刷按钮时出错: {e}")
+        import traceback
+        traceback.print_exc()
+        return None

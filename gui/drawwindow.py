@@ -244,6 +244,13 @@ class DrawWindow(Gtk.Window):
         self._toolbar_manager = toolbar.ToolbarManager(self)
         self._toolbar1 = self._toolbar_manager.toolbar1
         self._toolbar2 = self._toolbar_manager.toolbar2
+        
+        # 添加轮廓填充笔刷按钮到工具栏
+        try:
+            toolbar.add_outline_fill_brush_button(self._toolbar1, self.app)
+            print("轮廓填充笔刷按钮添加到工具栏成功")
+        except Exception as e:
+            print(f"添加轮廓填充笔刷按钮失败: {e}")
 
     def _clone_menu(self, xml, name, owner=None):
         """Menu duplicator

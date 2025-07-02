@@ -96,6 +96,7 @@ import gui.autorecover
 import lib.xml
 import gui.profiling
 from lib.pycompat import unicode
+import gui.outline_fill_brush_manager
 
 logger = logging.getLogger(__name__)
 
@@ -445,6 +446,9 @@ class Application(object):
         # Profiling & debug stuff
         self.profiler = gui.profiling.Profiler()
 
+        # 初始化轮廓填充笔刷管理器（延迟初始化）
+        self.outline_fill_brush_manager = None
+
         # Show main UI.
         self.drawWindow.show_all()
         GLib.idle_add(self._at_application_start, filenames, fullscreen)
@@ -490,6 +494,14 @@ class Application(object):
 
         self.apply_settings()
         self.drawWindow.present()
+
+        # 延迟初始化轮廓填充笔刷管理器
+        try:
+            self.outline_fill_brush_manager = gui.outline_fill_brush_manager.OutlineFillBrushManager(self)
+            print("轮廓填充笔刷管理器初始化成功")
+        except Exception as e:
+            print(f"轮廓填充笔刷管理器初始化失败: {e}")
+            self.outline_fill_brush_manager = None
 
         # Handle fullscreen command line option
         if fullscreen:
@@ -817,6 +829,13 @@ class Application(object):
     def crash_program_cb(self, action):
         """Tests exception handling."""
         raise Exception("This is a crash caused by the user.")
+
+    def activate_outline_fill_brush_cb(self, action):
+        """菜单激活轮廓填充笔刷"""
+        if self.outline_fill_brush_manager:
+            self.outline_fill_brush_manager.activate_brush()
+        else:
+            print("轮廓填充笔刷管理器未初始化")
 
 
 class PixbufDirectory(object):

@@ -104,6 +104,7 @@
       <!-- Detailed brush settings -->
       <separator/>
       <menuitem action='BrushEditorWindow'/>
+      <menuitem action='OutlineFillBrushTool'/>
       <menuitem action='BrushIconEditorWindow'/>
       <menuitem action='BrushReload'/>
       <separator/>
