@@ -1029,7 +1029,10 @@ class _PaletteGridLayout(ColorAdjusterWidget):
         return 1
 
     def render_background_cb(self, cr, wd, ht):
-        return
+        # 清除背景，确保颜色块能够正确显示
+        bg_col = _widget_get_bg_color(self)
+        cr.set_source_rgb(*bg_col.get_rgb())
+        cr.paint()
 
     def _paint_palette_layout(self, cr):
         mgr = self.get_color_manager()
@@ -1037,6 +1040,11 @@ class _PaletteGridLayout(ColorAdjusterWidget):
             return
         bg_col = _widget_get_bg_color(self)
         dx, dy = self.get_painting_offset()
+        
+        # 添加调试信息
+        print(f"渲染调色板: 行={self._rows}, 列={self._columns}, 大小={self._swatch_size}, 偏移=({dx}, {dy})")
+        print(f"调色板颜色数量: {len(mgr.palette)}")
+        
         _palette_render(
             mgr.palette,
             cr,
@@ -1136,7 +1144,7 @@ class _PaletteGridLayout(ColorAdjusterWidget):
             dx = (wd - l_wd) / 2.0
         if l_ht < ht:
             dy = (ht - l_ht) / 2.0
-        return 1 + int(dx), 1 + int(dy)
+        return int(dx), int(dy)
 
     def get_color_at_position(self, x, y):
         i = self.get_index_at_pos(x, y)
@@ -1146,6 +1154,7 @@ class _PaletteGridLayout(ColorAdjusterWidget):
             if col is None:
                 return None
             return col
+        return None
 
     def set_color_at_position(self, x, y, color):
         i = self.get_index_at_pos(x, y)
@@ -1427,6 +1436,21 @@ def _palette_loadsave_dialog_update_preview_cb(dialog, preview):
 ## Palette rendering using Cairo
 
 
+def _validate_color_rgb(rgb_tuple):
+    """验证并修正RGB颜色值，确保在有效范围内"""
+    if not rgb_tuple or len(rgb_tuple) != 3:
+        return (0.5, 0.5, 0.5)
+    
+    validated = []
+    for c in rgb_tuple:
+        if isinstance(c, (int, float)):
+            validated.append(max(0.0, min(1.0, float(c))))
+        else:
+            validated.append(0.5)
+    
+    return tuple(validated)
+
+
 def _palette_render(
     palette,
     cr,
@@ -1489,14 +1513,23 @@ def _palette_render(
     cr.stroke()
 
     # Draw into the predefined grid
-    r = c = 0
     cr.set_line_width(1.0)
     cr.set_line_cap(cairo.LINE_CAP_SQUARE)
-    for col in palette.iter_colors():
-        s_x = c * swatch_w
-        s_y = r * swatch_h
+    
+    # 添加调试信息
+    print(f"_palette_render: 行={rows}, 列={columns}, 大小={swatch_size}")
+    
+    for i, col in enumerate(palette.iter_colors()):
+        # 计算正确的行和列位置
+        c = i % columns
+        r = i // columns
+        
+        s_x = 0.5 + (c * swatch_w)
+        s_y = 0.5 + (r * swatch_h)
         s_w = swatch_w
         s_h = swatch_h
+        
+        print(f"颜色 {i}: 位置({c}, {r}) -> 坐标({s_x}, {s_y})")
 
         # Select fill bg and pattern fg colors, Tango-style edge highlight
         # and lower-right shadow.
@@ -1510,23 +1543,22 @@ def _palette_render(
             sh_col.c *= 0.5
             sh_rgb = sh_col.get_rgb()
         else:
-            # Color swatch - 简化颜色处理逻辑
-            fill_bg_rgb = col.get_rgb()
-            # 确保颜色值在有效范围内
-            fill_bg_rgb = tuple(max(0.0, min(1.0, c)) for c in fill_bg_rgb)
-            
-            # 创建高亮和阴影颜色
-            hi_col = HCYColor(color=col)
-            hi_col.y = min(hi_col.y * 1.1, 1)
-            hi_col.c = min(hi_col.c * 1.1, 1)
-            hi_rgb = hi_col.get_rgb()
-            hi_rgb = tuple(max(0.0, min(1.0, c)) for c in hi_rgb)
-            
-            sh_col = HCYColor(color=col)
-            sh_col.y *= 0.666
-            sh_col.c *= 0.5
-            sh_rgb = sh_col.get_rgb()
-            sh_rgb = tuple(max(0.0, min(1.0, c)) for c in sh_rgb)
+            # Color swatch - 直接使用原始颜色，简化处理
+            try:
+                fill_bg_rgb = col.get_rgb()
+                # 确保颜色值在有效范围内
+                fill_bg_rgb = tuple(max(0.0, min(1.0, float(c))) for c in fill_bg_rgb)
+                
+                # 使用简单的边框颜色
+                hi_rgb = (0.3, 0.3, 0.3)  # 深灰色边框
+                sh_rgb = (0.2, 0.2, 0.2)  # 阴影颜色
+                
+            except Exception as e:
+                # 如果颜色处理出错，使用默认颜色
+                print(f"颜色处理错误: {e}")
+                fill_bg_rgb = (0.5, 0.5, 0.5)
+                hi_rgb = (0.3, 0.3, 0.3)
+                sh_rgb = (0.2, 0.2, 0.2)
             
             fill_fg_rgb = None
 
@@ -1548,23 +1580,27 @@ def _palette_render(
                 cr.rectangle(s_x + s_w2, s_y + s_h2, s_w2, s_h2)
                 cr.fill()
         else:
-            # 有色槽位：直接绘制颜色，添加简单边框
-            # 绘制主色块
-            cr.set_source_rgb(*fill_bg_rgb)
-            cr.rectangle(s_x, s_y, s_w - 1, s_h - 1)
-            cr.fill()
-            
-            # 绘制边框
-            cr.set_source_rgb(*hi_rgb)
-            cr.set_line_width(1.0)
-            cr.rectangle(s_x + 0.5, s_y + 0.5, s_w - 2, s_h - 2)
-            # cr.stroke() 
-            #注释此行可以解决在mac上只显示边框的问题（不显示色块的问题，目前还不知道原因）
-
-        c += 1
-        if c >= columns:
-            c = 0
-            r += 1
+            # 有色槽位：绘制颜色块
+            try:
+                # 确保颜色值有效
+                r, g, b = fill_bg_rgb
+                r = max(0.0, min(1.0, float(r)))
+                g = max(0.0, min(1.0, float(g)))
+                b = max(0.0, min(1.0, float(b)))
+                
+                # 设置颜色源并绘制
+                cr.set_source_rgb(r, g, b)
+                cr.rectangle(s_x, s_y, s_w - 1, s_h - 1)
+                cr.fill()
+                
+                print(f"绘制颜色块: ({r}, {g}, {b}) 在位置 ({s_x}, {s_y})")
+                
+            except Exception as e:
+                print(f"绘制颜色块错误: {e}")
+                # 如果绘制失败，使用默认颜色
+                cr.set_source_rgb(0.5, 0.5, 0.5)
+                cr.rectangle(s_x, s_y, s_w - 1, s_h - 1)
+                cr.fill()
 
     cr.restore()
 
